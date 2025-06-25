@@ -534,7 +534,7 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
             disabled={phoneFriendUsed || isLoadingQuestion || showWalkAwayConfirm}
             className={`
               ${phoneFriendUsed || isLoadingQuestion || showWalkAwayConfirm ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Phone a Friend
@@ -568,7 +568,7 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
                       style={{ width: `${percentage}%` }}
                     ></div>
                   </div>
-                  {/* Corrected: Wrap sibling elements in a single parent div */}
+                  {/* Fixed: Wrap sibling elements in a single parent div */}
                   <span className="ml-2 text-lg">{percentage}%</span>
                 </div>
               ))}
@@ -1985,7 +1985,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             disabled={!isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
               ${!isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Phone a Friend
@@ -2023,7 +2023,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
                                 style={{ width: `${percentage}%` }}
                                 ></div>
                             </div>
-                            {/* Corrected: Wrap sibling elements in a single parent div */}
+                            {/* Fixed: Wrap sibling elements in a single parent div */}
                             <span className="ml-2 text-lg">{percentage}%</span>
                         </div>
                         ))}
