@@ -1142,7 +1142,7 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
                                 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 ease-in-out transform hover:scale-105 shadow-md text-left flex items-center
                             `}
                         >
-                            <span className="mr-3 font-bold text-yellow-300">{String.fromCharCode(65 + index)}.</span>
+                            <span className="mr-3 font-bold">{String.fromCharCode(65 + index)}.</span>
                             {item}
                         </button>
                     ))}
@@ -1398,6 +1398,79 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
     const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
 
+    // Define generateAndSetQuestion internally within useEffect
+    const generateAndSetQuestionInternal = async (age: number, prizeLevel: number, questionIndex: number) => {
+        if (!dbInstance || !roomId) return; // Add check here just in case
+
+        try {
+            await updateDoc(roomRef, { isLoadingQuestion: true }); // Set loading state in Firestore
+
+            const prompt = `Generate a "Who Wants to be a Millionaire?" style trivia question for a ${age}-year-old with a prize value of $${prizeLevel}. The question should have four distinct options (A, B, C, D) and specify which one is correct. Ensure the question is age-appropriate and has a clear correct answer. The question should not be too easy or too hard for the prize level. Provide the output in JSON format with 'question', 'options' (an array of strings), and 'correctAnswerIndex' (0-3).`;
+
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "question": { "type": "STRING" },
+                            "options": {
+                                "type": "ARRAY",
+                                "items": { "type": "STRING" },
+                                "minItems": 4,
+                                "maxItems": 4
+                            },
+                            "correctAnswerIndex": { "type": "NUMBER", "minimum": 0, "maximum": 3 }
+                        },
+                        "required": ["question", "options", "correctAnswerIndex"]
+                    }
+                }
+            };
+
+            const apiKey = ""; // Canvas will provide this in runtime
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                const jsonString = result.candidates[0].content.parts[0].text;
+                let generatedQ: any = {};
+                try {
+                    generatedQ = JSON.parse(jsonString);
+                } catch (parseError) {
+                    console.error("Failed to parse AI generated question:", parseError, "Raw text:", jsonString);
+                    setMessage("Failed to generate a valid question. Please try again.");
+                    generatedQ = {
+                        question: "Could not load question. What is the capital of Australia?",
+                        options: ["Sydney", "Melbourne", "Canberra", "Perth"],
+                        correctAnswerIndex: 2
+                    };
+                }
+                await updateDoc(roomRef, {
+                    currentQuestion: generatedQ,
+                    isLoadingQuestion: false,
+                });
+            } else {
+                console.error("AI question generation failed:", result);
+                setMessage("Failed to generate a question. Please try again.");
+                await updateDoc(roomRef, { isLoadingQuestion: false });
+            }
+        } catch (apiError) {
+            console.error("Error calling Gemini API:", apiError);
+            setMessage("Error connecting to AI. Please check your internet or try again later.");
+            await updateDoc(roomRef, { isLoadingQuestion: false });
+        }
+    };
+
+
     roomUnsubscribeRef.current = onSnapshot(roomRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -1409,7 +1482,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             if (!data.currentQuestion || data.currentQuestion.questionIndex !== data.currentQuestionIndex) {
                  const currentPrize = prizeTiers[data.currentQuestionIndex] || 0;
                  const contestantAge = data.players[data.currentTurnPlayerId]?.age || 18; // Default to 18 if age not found
-                 generateAndSetQuestion(contestantAge, currentPrize, data.currentQuestionIndex);
+                 generateAndSetQuestionInternal(contestantAge, currentPrize, data.currentQuestionIndex); // Call the internal function
             }
         }
 
@@ -1486,7 +1559,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
         roomUnsubscribeRef.current();
       }
     };
-  }, [roomId, setRoomId, generateAndSetQuestion, isHost, currentQuestion, getNextContestantPlayerId]);
+  }, [roomId, setRoomId, isHost, currentQuestion, getNextContestantPlayerId]); // Removed generateAndSetQuestion from dependencies
 
   // Function to handle answer selection
   const handleAnswerClick = async (selectedIndex: number) => {
@@ -1911,7 +1984,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             disabled={!isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
               ${!isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Phone a Friend
