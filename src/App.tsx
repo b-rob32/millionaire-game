@@ -534,7 +534,7 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
             disabled={phoneFriendUsed || isLoadingQuestion || showWalkAwayConfirm}
             className={`
               ${phoneFriendUsed || isLoadingQuestion || showWalkAwayConfirm ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Phone a Friend
@@ -813,8 +813,8 @@ const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id
     }
 
     try {
-        const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
-        const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, `room-${currentRoomCodeRef.current}`);
+      const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+      const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, `room-${currentRoomCodeRef.current}`);
       await updateDoc(roomRef, {
         status: 'fastest-finger', // Transition to Fastest Finger First round
         fffQuestionIndex: 0,
@@ -921,7 +921,7 @@ const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
               className="w-full p-3 mb-4 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              maxLength="6"
+              maxLength={6} // Corrected: Passed as a number
             />
             <button
               onClick={handleJoinRoom}
@@ -1937,7 +1937,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
         {(roomData.questionLifelineState.audienceVote || roomData.questionLifelineState.friendAnswer) && (
             <div className="bg-gray-700 p-5 rounded-lg w-full max-w-md mt-6 border border-yellow-500 shadow-inner text-center">
                 <h3 className="text-xl font-bold mb-3 text-yellow-300">Lifeline Used! ({roomData.players[roomData.questionLifelineState.usedByPlayerId]?.name})</h3>
-                {roomData.questionLifelineState.audienceVote && (
+                {Object.entries(roomData.questionLifelineState).length > 0 && roomData.questionLifelineState.audienceVote && (
                     <>
                         <h3 className="text-xl font-bold mb-3 text-yellow-300">Audience Vote:</h3>
                         {Object.entries(roomData.questionLifelineState.audienceVote).map(([option, percentage]) => (
@@ -1954,7 +1954,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
                         ))}
                     </>
                 )}
-                {roomData.questionLifelineState.friendAnswer && (
+                {Object.entries(roomData.questionLifelineState).length > 0 && roomData.questionLifelineState.friendAnswer && (
                     <>
                         <h3 className="text-xl font-bold mb-3 text-yellow-300">Friend's Advice:</h3>
                         <p className="text-lg italic">{roomData.questionLifelineState.friendAnswer}</p>
