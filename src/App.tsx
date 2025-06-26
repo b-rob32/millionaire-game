@@ -562,14 +562,16 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
               {Object.entries(audienceVote).map(([option, percentage]) => (
                 <div key={option} className="flex justify-between items-center mb-2">
                   <span className="text-lg">{option}:</span>
-                  <div className="w-2/3 bg-gray-600 rounded-full h-4">
-                    <div
-                      className="bg-purple-400 h-4 rounded-full"
-                      style={{ width: `${percentage}%` }}
-                    ></div>
+                  {/* The bar and percentage are now grouped in a single flex container */}
+                  <div className="flex items-center" style={{ flexBasis: '75%' }}>
+                    <div className="w-full bg-gray-600 rounded-full h-4">
+                      <div
+                        className="bg-purple-400 h-4 rounded-full"
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                    <span className="ml-2 text-lg w-12 text-right">{percentage}%</span>
                   </div>
-                  {/* Fixed: Wrap sibling elements in a single parent div */}
-                  <span className="ml-2 text-lg">{percentage}%</span>
                 </div>
               ))}
             </div>
@@ -2017,14 +2019,16 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
                         {Object.entries(roomData.questionLifelineState.audienceVote).map(([option, percentage]) => (
                         <div key={option} className="flex justify-between items-center mb-2">
                             <span className="text-lg">{option}:</span>
-                            <div className="w-2/3 bg-gray-600 rounded-full h-4">
-                                <div
-                                className="bg-purple-400 h-4 rounded-full"
-                                style={{ width: `${percentage}%` }}
-                                ></div>
+                            {/* The bar and percentage are now grouped in a single flex container */}
+                            <div className="flex items-center" style={{ flexBasis: '75%' }}>
+                                <div className="w-full bg-gray-600 rounded-full h-4">
+                                    <div
+                                        className="bg-purple-400 h-4 rounded-full"
+                                        style={{ width: `${percentage}%` }}
+                                    ></div>
+                                </div>
+                                <span className="ml-2 text-lg w-12 text-right">{percentage}%</span>
                             </div>
-                            {/* Fixed: Wrapped sibling elements in a single parent div */}
-                            <span className="ml-2 text-lg">{percentage}%</span>
                         </div>
                         ))}
                     </>
