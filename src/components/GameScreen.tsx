@@ -169,7 +169,8 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
   const currentQuestion: GameQuestion | null = roomData ? roomData.currentQuestion : null; // Use AI-generated question
   const isMyTurn = roomData && roomData.currentTurnPlayerId === userId;
   const isMyActive = roomData && roomData.players[userId] && roomData.players[userId].isActive;
-  const myPlayerState = roomData && roomData.players[userId];
+  // Fixed: Ensure myPlayerState is always an object, even if the player data is not yet loaded or null
+  const myPlayerState = roomData?.players[userId] || {};
   const currentContestantAge = roomData?.currentTurnPlayerId ? roomData.players[roomData.currentTurnPlayerId]?.age : 0;
   const isHost = roomData?.hostId === userId; // Determine if current user is host
 
