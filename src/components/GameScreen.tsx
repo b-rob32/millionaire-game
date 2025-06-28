@@ -315,10 +315,12 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
                 const totalAudienceVotes = playersToVote.length;
                 const audiencePercentages: Record<string, number> = {};
-                for (let i = 0; i < (data.currentQuestion?.options.length || 4); i++) {
-                    audiencePercentages[data.currentQuestion.options[i]] = Math.round(((voteCounts[i] || 0) / totalAudienceVotes) * 100);
+                if (data.currentQuestion?.options) { // Added null check for data.currentQuestion.options
+                    for (let i = 0; i < data.currentQuestion.options.length; i++) {
+                        audiencePercentages[data.currentQuestion.options[i]] = Math.round(((voteCounts[i] || 0) / totalAudienceVotes) * 100);
+                    }
                 }
-
+                
                 // Ensure percentages sum to 100 (distribute remainder if any)
                 let sum = Object.values(audiencePercentages).reduce((acc, val) => acc + val, 0);
                 if (sum !== 100 && (data.currentQuestion?.options.length || 4) > 0) {
@@ -339,7 +341,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             if (friendSuggestion !== undefined) {
                  // Friend has submitted their suggestion
                  updateDoc(roomRef, {
-                    'questionLifelineState.friendAnswer': currentQuestion.options[friendSuggestion], // Store text
+                    'questionLifelineState.friendAnswer': currentQuestion?.options[friendSuggestion], // Added null check for currentQuestion
                     'questionLifelineState.usedByPlayerId': initiatorId,
                     activeLifelineRequest: null // Clear active request
                 });
