@@ -179,6 +179,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
       phoneFriendUsed: false,
       isActive: false
   };
+  // Fixed: Safely access currentContestantAge
   const currentContestantAge = roomData?.currentTurnPlayerId ? roomData.players[roomData.currentTurnPlayerId]?.age : 0;
   const isHost = roomData?.hostId === userId; // Determine if current user is host
 
@@ -748,7 +749,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
         <div className="mb-8 text-center bg-purple-900 p-6 rounded-lg border-2 border-yellow-400 shadow-inner">
           {roomData.isLoadingQuestion ? (
-            <p className="text-2xl md:text-3xl font-bold animate-pulse">Generating question for {roomData.players[roomData.currentTurnPlayerId]?.name} (Age {currentContestantAge})...</p>
+            <p className="text-2xl md:text-3xl font-bold animate-pulse">Generating question for {roomData.players[roomData.currentTurnPlayerId as string]?.name || 'a player'} (Age {currentContestantAge})...</p>
           ) : (currentQuestion ? (
             <p className="text-2xl md:text-3xl font-bold">{currentQuestion.question}</p>
           ) : (
