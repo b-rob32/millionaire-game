@@ -446,7 +446,8 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
     // Determine the next overall contestant for the main game
     // This part ensures the turn logic handles continuation vs new contestant correctly
-    let nextContestantCandidateId = getNextContestantPlayerId(roomData.playerOrder, newEliminatedPlayers, newContestantHistory, roomData.currentTurnPlayerId);
+    // Fixed: Provide a default empty string if roomData.currentTurnPlayerId is null
+    let nextContestantCandidateId = getNextContestantPlayerId(roomData.playerOrder, newEliminatedPlayers, newContestantHistory, roomData.currentTurnPlayerId || '');
 
     // If the next candidate is the same as the current player AND they answered correctly
     // AND they haven't reached the end of questions, they continue their turn.
@@ -508,8 +509,8 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
     setMessage(`You decided to walk away with your current winnings of $${walkedAwayPrize}.`);
 
-    // Find the next player who has NOT been a contestant yet
-    const nextTurnPlayerId = getNextContestantPlayerId(roomData.playerOrder, newEliminatedPlayers, newContestantHistory, userId);
+    // Fixed: Provide a default empty string if userId is null
+    const nextTurnPlayerId = getNextContestantPlayerId(roomData.playerOrder, newEliminatedPlayers, newContestantHistory, userId || '');
     const nextQuestionIndex = 0; // Always reset question index for new contestant
 
     await updateDoc(roomRef, {
@@ -797,7 +798,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             disabled={!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
               ${!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Ask the Audience
