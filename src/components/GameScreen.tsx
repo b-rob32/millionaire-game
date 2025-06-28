@@ -782,9 +782,9 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             <button
               key={index}
               onClick={() => handleAnswerClick(index)}
-              disabled={!isMyTurn || !isMyActive || roomData.isLoadingQuestion || roomData.questionLifelineState.disabledOptions.includes(index) || roomData.activeLifelineRequest || showWalkAwayConfirm}
+              disabled={!isMyTurn || !isMyActive || roomData.isLoadingQuestion || roomData.questionLifelineState.disabledOptions.includes(index) || !!roomData.activeLifelineRequest || showWalkAwayConfirm}
               className={`
-                ${!isMyTurn || !isMyActive || roomData.isLoadingQuestion || roomData.questionLifelineState.disabledOptions.includes(index) || roomData.activeLifelineRequest || showWalkAwayConfirm
+                ${!isMyTurn || !isMyActive || roomData.isLoadingQuestion || roomData.questionLifelineState.disabledOptions.includes(index) || !!roomData.activeLifelineRequest || showWalkAwayConfirm
                   ? 'bg-gray-600 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700'}
                 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 ease-in-out transform hover:scale-105 shadow-md text-left flex items-center
@@ -799,9 +799,9 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
         <div className="flex flex-wrap justify-center gap-4 mb-8 w-full">
           <button
             onClick={handleFiftyFifty}
-            disabled={!isMyTurn || !isMyActive || myPlayerState.fiftyFiftyUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm}
+            disabled={!isMyTurn || !isMyActive || myPlayerState.fiftyFiftyUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
-              ${!isMyTurn || !isMyActive || myPlayerState.fiftyFiftyUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}
+              ${!isMyTurn || !isMyActive || myPlayerState.fiftyFiftyUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}
               text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
@@ -809,19 +809,19 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
           </button>
           <button
             onClick={handleAskAudience}
-            disabled={!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm}
+            disabled={!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
-              ${!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
+              ${!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700'}
+              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Ask the Audience
           </button>
           <button
             onClick={handlePhoneFriend}
-            disabled={!isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm}
+            disabled={!isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
-              ${!isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}
+              ${!isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}
               text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
@@ -833,9 +833,9 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
         <div className="w-full flex justify-center mt-4">
             <button
                 onClick={handleWalkAwayInitiate}
-                disabled={!isMyTurn || !isMyActive || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm}
+                disabled={!isMyTurn || !isMyActive || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm}
                 className={`
-                    ${!isMyTurn || !isMyActive || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm ? 'bg-gray-600 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700'}
+                    ${!isMyTurn || !isMyActive || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm ? 'bg-gray-600 cursor-not-allowed' : 'bg-orange-600 hover:bg-orange-700'}
                     text-white font-bold py-3 px-8 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
                 `}
             >
