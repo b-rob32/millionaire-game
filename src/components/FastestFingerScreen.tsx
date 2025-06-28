@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { dbInstance, currentUserId } from '../utils/firebase';
+import { dbInstance } from '../utils/firebase';
 import { fffQuestionsData } from '../utils/constants';
 import MessageBox from './MessageBox';
 import { RoomData, FFFQuestion } from '../types/game'; // Import types
@@ -14,9 +14,9 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
     const fffStartTimeRef = useRef<number | null>(null);
 
     const currentFffQuestion: FFFQuestion | null = roomData ? fffQuestionsData[roomData.fffQuestionIndex % fffQuestionsData.length] : null;
-    const activeFffPlayers = roomData ? Object.keys(roomData.players).filter(
+    const activeFffPlayers = React.useMemo(() => roomData ? Object.keys(roomData.players).filter( // Wrapped in useMemo
         (id) => roomData.players[id].isActive && (!roomData.fffTieParticipants || roomData.fffTieParticipants.length === 0 || roomData.fffTieParticipants.includes(id))
-    ) : [];
+    ) : [], [roomData]); // Added roomData to dependencies of useMemo
 
     useEffect(() => {
         if (!roomId || !dbInstance) {
@@ -59,7 +59,7 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
                 roomUnsubscribeRef.current();
             }
         };
-    }, [roomId, setRoomId, activeFffPlayers.length, roomData]); // Added roomData to dependencies for accurate currentFffQuestion and fffQuestionIndex access
+    }, [roomId, setRoomId, activeFffPlayers.length, roomData, determineFffWinner]); // Added roomData to dependencies for accurate currentFffQuestion and fffQuestionIndex access
 
     const determineFffWinner = useCallback(async (currentRoomData: RoomData, roomRef: any) => {
         const correctSubmissions: { playerId: string, time: number }[] = [];
