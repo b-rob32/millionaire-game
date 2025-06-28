@@ -614,6 +614,11 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Callback for when the contestant selects a friend for PAF
   const handleSelectFriendForPhone = async (friendId: string) => {
+    if (!roomData) { // Added null check for roomData
+        setMessage("Game data not available to select friend.");
+        setShowPhoneFriendSelect(false);
+        return;
+    }
     setShowPhoneFriendSelect(false); // Close selection modal
     const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
@@ -622,7 +627,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             type: 'friend',
             initiatorId: userId,
             targetPlayerId: friendId,
-            questionIndex: roomData?.currentQuestionIndex, // Fixed: Added null check for roomData
+            questionIndex: roomData.currentQuestionIndex, // Fixed: Added null check for roomData
             responses: {} // To collect the friend's suggestion
         },
     });
