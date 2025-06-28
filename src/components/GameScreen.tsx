@@ -337,10 +337,10 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             const initiatorId = data.activeLifelineRequest.initiatorId;
             const targetPlayerId = data.activeLifelineRequest.targetPlayerId;
             
-            // Fixed: Check if targetPlayerId is defined before accessing responses[targetPlayerId]
+            // Fixed: Check if targetPlayerId is defined and friendSuggestion is a number
             const friendSuggestion = targetPlayerId ? data.activeLifelineRequest.responses?.[targetPlayerId] : undefined;
 
-            if (friendSuggestion !== undefined && currentQuestion?.options) { // Added null check for currentQuestion.options
+            if (friendSuggestion !== undefined && typeof friendSuggestion === 'number' && currentQuestion?.options) { // Added null check for currentQuestion.options
                  // Friend has submitted their suggestion
                  updateDoc(roomRef, {
                     'questionLifelineState.friendAnswer': currentQuestion.options[friendSuggestion], // CurrentQuestion needs to be checked before indexing
