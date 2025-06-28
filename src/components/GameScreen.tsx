@@ -169,8 +169,16 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
   const currentQuestion: GameQuestion | null = roomData ? roomData.currentQuestion : null; // Use AI-generated question
   const isMyTurn = roomData && roomData.currentTurnPlayerId === userId;
   const isMyActive = roomData && roomData.players[userId] && roomData.players[userId].isActive;
-  // Fixed: Ensure myPlayerState is always an object, even if the player data is not yet loaded or null
-  const myPlayerState = roomData?.players[userId] || {};
+  // Fixed: Ensure myPlayerState is always an object with PlayerState properties
+  const myPlayerState = roomData?.players[userId] || {
+      name: '',
+      age: 0,
+      score: 0,
+      fiftyFiftyUsed: false,
+      askAudienceUsed: false,
+      phoneFriendUsed: false,
+      isActive: false
+  };
   const currentContestantAge = roomData?.currentTurnPlayerId ? roomData.players[roomData.currentTurnPlayerId]?.age : 0;
   const isHost = roomData?.hostId === userId; // Determine if current user is host
 
@@ -789,7 +797,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             disabled={!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
               ${!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Ask the Audience
