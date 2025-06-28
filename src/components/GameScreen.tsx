@@ -473,7 +473,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
       currentQuestion: null, // Clear current question to trigger generation for next turn
       questionLifelineState: newQuestionLifelineState,
       activeLifelineRequest: null, // Ensure any active lifeline request is cleared
-      // Status update handled by useEffect listener, will transition to final-scores if all done
+      // Status update handled by useEffect listener, will will transition to final-scores if all done
     });
 
     // Clear local message after some time
@@ -622,11 +622,11 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             type: 'friend',
             initiatorId: userId,
             targetPlayerId: friendId,
-            questionIndex: roomData.currentQuestionIndex,
+            questionIndex: roomData?.currentQuestionIndex, // Fixed: Added null check for roomData
             responses: {} // To collect the friend's suggestion
         },
     });
-    setMessage(`Calling ${roomData.players[friendId]?.name}...`);
+    setMessage(`Calling ${roomData?.players[friendId]?.name}...`);
   };
 
   // Callback for when the "friend" submits their suggestion
