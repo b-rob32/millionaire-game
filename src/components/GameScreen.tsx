@@ -490,6 +490,13 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
   };
 
   const handleWalkAwayConfirm = async () => {
+    // Fixed: Add null check for roomData before accessing its properties
+    if (!roomData) {
+        setMessage("Game data not available to walk away.");
+        setShowWalkAwayConfirm(false);
+        return;
+    }
+
     setShowWalkAwayConfirm(false); // Close confirmation modal
 
     const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
@@ -635,6 +642,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
 
   const handleRestartGame = async () => {
+      // Fixed: Add null check for roomData before accessing its properties
       if (!roomData || roomData.hostId !== userId) {
           setMessage("Only the host can restart the game.");
           return;
