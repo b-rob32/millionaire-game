@@ -847,7 +847,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
         {/* Display Audience Vote or Friend's Advice if used for this question */}
         {(roomData.questionLifelineState.audienceVote || roomData.questionLifelineState.friendAnswer) && (
             <div className="bg-gray-700 p-5 rounded-lg w-full max-w-md mt-6 border border-yellow-500 shadow-inner text-center">
-                <h3 className="text-xl font-bold mb-3 text-yellow-300">Lifeline Used! ({roomData.players[roomData.questionLifelineState.usedByPlayerId]?.name})</h3>
+                <h3 className="text-xl font-bold mb-3 text-yellow-300">Lifeline Used! ({roomData.players[roomData.questionLifelineState.usedByPlayerId as string]?.name || 'Unknown Player'})</h3>
                 {roomData.questionLifelineState.audienceVote && (
                     // Corrected: Each item in the map returns a single parent div
                     Object.entries(roomData.questionLifelineState.audienceVote).map(([option, percentage]) => (
