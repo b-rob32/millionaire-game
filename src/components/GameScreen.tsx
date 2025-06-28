@@ -336,12 +336,14 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
         } else if (isHost && data.activeLifelineRequest?.type === 'friend' && data.activeLifelineRequest.questionIndex === data.currentQuestionIndex) {
             const initiatorId = data.activeLifelineRequest.initiatorId;
             const targetPlayerId = data.activeLifelineRequest.targetPlayerId;
-            const friendSuggestion = data.activeLifelineRequest.responses?.[targetPlayerId];
+            
+            // Fixed: Check if targetPlayerId is defined before accessing responses[targetPlayerId]
+            const friendSuggestion = targetPlayerId ? data.activeLifelineRequest.responses?.[targetPlayerId] : undefined;
 
-            if (friendSuggestion !== undefined) {
+            if (friendSuggestion !== undefined && currentQuestion?.options) { // Added null check for currentQuestion.options
                  // Friend has submitted their suggestion
                  updateDoc(roomRef, {
-                    'questionLifelineState.friendAnswer': currentQuestion?.options[friendSuggestion], // Added null check for currentQuestion
+                    'questionLifelineState.friendAnswer': currentQuestion.options[friendSuggestion], // CurrentQuestion needs to be checked before indexing
                     'questionLifelineState.usedByPlayerId': initiatorId,
                     activeLifelineRequest: null // Clear active request
                 });
