@@ -201,7 +201,7 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
                                 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 ease-in-out transform hover:scale-105 shadow-md text-left flex items-center
                             `}
                         >
-                            <span className="mr-3 font-bold text-yellow-300">{String.fromCharCode(65 + index)}.</span>
+                            <span className="mr-3 font-bold">{String.fromCharCode(65 + index)}.</span>
                             {item}
                         </button>
                     ))}

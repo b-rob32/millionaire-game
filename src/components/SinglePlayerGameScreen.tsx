@@ -335,7 +335,7 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
           </button>
           <button
             onClick={() => setGameMode('none')}
-            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+            className="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
           >
             Back to Mode Selection
           </button>

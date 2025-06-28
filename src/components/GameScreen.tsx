@@ -323,7 +323,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
                 
                 // Ensure percentages sum to 100 (distribute remainder if any)
                 let sum = Object.values(audiencePercentages).reduce((acc, val) => acc + val, 0);
-                if (sum !== 100 && (data.currentQuestion?.options.length || 4) > 0) {
+                if (sum !== 100 && data.currentQuestion?.options && data.currentQuestion.options.length > 0) { // Added null and length checks
                     audiencePercentages[data.currentQuestion.options[0]] += (100 - sum);
                 }
 
