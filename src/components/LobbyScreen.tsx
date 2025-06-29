@@ -43,7 +43,8 @@ const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id
     const playerUserId = currentUserId; // Use the globally available user ID
 
     try {
-        const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+        // Use process.env.REACT_APP_ID for Netlify deployment
+        const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id';
         const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, newRoomId);
         await setDoc(roomRef, {
             gameCode: newRoomCode,
@@ -123,14 +124,15 @@ const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id
 
     try {
         setIsJoiningRoom(true);
-        const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+        // Use process.env.REACT_APP_ID for Netlify deployment
+        const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id';
         const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomIdToJoin);
         const docSnap = await getDoc(roomRef);
 
         if (docSnap.exists()) {
             const roomData = docSnap.data();
             if (roomData.status !== 'lobby') {
-                setMessage("Cannot join: Game has already started or finished.");
+                setMessage("Cannot join: Game has already started or splashed.");
                 setIsJoiningRoom(false);
                 return;
             }
@@ -221,7 +223,7 @@ const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id
     }
 
     try {
-      const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+      const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id'; // Use process.env.REACT_APP_ID
       const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, `room-${currentRoomCodeRef.current}`);
       await updateDoc(roomRef, {
         status: 'fastest-finger', // Transition to Fastest Finger First round

@@ -215,7 +215,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
       return;
     }
 
-    const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+    const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
 
     // Define generateAndSetQuestion internally within useEffect
@@ -389,10 +389,11 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
   const handleAnswerClick = async (selectedIndex: number) => {
     if (!roomData || !isMyTurn || !isMyActive || roomData.isLoadingQuestion || !currentQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm) return;
 
-    const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+    const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     const correct = selectedIndex === currentQuestion.correctAnswerIndex;
     let newScore = myPlayerState.score;
+    let playerIsActive = isMyActive; // Directly use isMyActive
     let nextQuestionIndex = roomData.currentQuestionIndex; // Will be reset to 0 for next contestant
     let nextTurnPlayerId: string | null = roomData.currentTurnPlayerId;
     let updatedPlayers = { ...roomData.players };
@@ -423,6 +424,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
       
     } else { // Incorrect answer
       setMessage(`Incorrect! The correct answer was "${currentQuestion.options[currentQuestion.correctAnswerIndex]}".`);
+      playerIsActive = false; // Eliminate this player
       updatedPlayers[userId].isActive = false;
       newEliminatedPlayers.push(userId); // Add to eliminated list
       
@@ -498,7 +500,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
     setShowWalkAwayConfirm(false); // Close confirmation modal
 
-    const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+    const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     let updatedPlayers = { ...roomData.players };
     let newContestantHistory = [...(roomData.contestantHistory || [])];
@@ -539,7 +541,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
 
   const handleFiftyFifty = async () => {
-    if (!roomData || !isMyTurn || !isMyActive || myPlayerState.fiftyFiftyUsed || roomData.isLoadingQuestion || !currentQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm) {
+    if (!roomData || !isMyTurn || !isMyActive || myPlayerState.fiftyFiftyUsed || roomData.isLoadingQuestion || !currentQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm) { // Fixed: Convert activeLifelineRequest to boolean
       setMessage(myPlayerState.fiftyFiftyUsed ? "50/50 lifeline already used!" : "Not your turn, eliminated, or question loading.");
       return;
     }
@@ -559,7 +561,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
     const optionsToRemove = getRandomElements(incorrectOptions, incorrectOptions.length - 1); // Select one incorrect to keep, remove others
 
     // Update Firestore
-    const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+    const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     await updateDoc(roomRef, {
       [`players.${userId}.fiftyFiftyUsed`]: true,
@@ -571,12 +573,12 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Function to initiate Ask the Audience
   const handleAskAudience = async () => {
-    if (!roomData || !isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || !currentQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm) {
+    if (!roomData || !isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || !currentQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm) { // Fixed: Convert activeLifelineRequest to boolean
       setMessage(myPlayerState.askAudienceUsed ? "Ask the Audience lifeline already used!" : "Not your turn, eliminated, or question loading/lifeline active.");
       return;
     }
 
-    const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+    const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     await updateDoc(roomRef, {
         activeLifelineRequest: {
@@ -591,7 +593,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Callback for when an audience member submits their vote
   const handleSubmitAudienceVote = async (selectedOptionIndex: number) => {
-    const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+    const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     // Add the vote to the activeLifelineRequest.responses map
     await updateDoc(roomRef, {
@@ -603,7 +605,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Function to initiate Phone a Friend (show selection modal)
   const handlePhoneFriend = async () => {
-    if (!roomData || !isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || !currentQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm) {
+    if (!roomData || !isMyTurn || !isMyActive || myPlayerState.phoneFriendUsed || roomData.isLoadingQuestion || !currentQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm) { // Fixed: Convert activeLifelineRequest to boolean
       setMessage(myPlayerState.phoneFriendUsed ? "Phone a Friend lifeline already used!" : "Not your turn, eliminated, or question loading/lifeline active.");
       return;
     }
@@ -619,7 +621,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
         return;
     }
     setShowPhoneFriendSelect(false); // Close selection modal
-    const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+    const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     await updateDoc(roomRef, {
         activeLifelineRequest: {
@@ -635,7 +637,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Callback for when the "friend" submits their suggestion
   const handleSubmitFriendSuggestion = async (selectedOptionIndex: number) => {
-    const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+    const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     // Add the suggestion to the activeLifelineRequest.responses map
     await updateDoc(roomRef, {
@@ -661,7 +663,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
       );
       const shuffledPlayerIds = activePlayersArray.sort(() => 0.5 - Math.random());
 
-      const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+      const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
       const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
       await updateDoc(roomRef, {
           status: 'fastest-finger', // Restart game by going back to FFF
@@ -810,7 +812,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             disabled={!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
               ${!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Ask the Audience
@@ -880,7 +882,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
               currentQuestion={currentQuestion}
               onSubmitVote={handleSubmitAudienceVote}
               onClose={async () => {
-                const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+                const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
                 await updateDoc(doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId), { activeLifelineRequest: null });
               }}
           />
@@ -902,7 +904,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
               currentQuestion={currentQuestion}
               onSubmitSuggestion={handleSubmitFriendSuggestion}
               onClose={async () => {
-                const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+                const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
                 await updateDoc(doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId), { activeLifelineRequest: null });
               }}
           />
