@@ -387,12 +387,19 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Function to handle answer selection
   const handleAnswerClick = async (selectedIndex: number) => {
-    if (!roomData || !isMyTurn || !isMyActive || roomData.isLoadingQuestion || !currentQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm) return;
+    if (!roomData || !isMyTurn || !isMyActive || roomData.isLoadingQuestion || !currentQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm) return; // Fixed: Convert activeLifelineRequest to boolean
+
+    // Fixed: Added null check for dbInstance
+    if (!dbInstance) {
+        setMessage("Firebase is not initialized. Cannot process answer.");
+        return;
+    }
 
     const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     const correct = selectedIndex === currentQuestion.correctAnswerIndex;
     let newScore = myPlayerState.score;
+    // Fixed: Removed redundant playerIsActive variable, use isMyActive directly
     let nextQuestionIndex = roomData.currentQuestionIndex; // Will be reset to 0 for next contestant
     let nextTurnPlayerId: string | null = roomData.currentTurnPlayerId;
     let updatedPlayers = { ...roomData.players };
@@ -423,6 +430,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
       
     } else { // Incorrect answer
       setMessage(`Incorrect! The correct answer was "${currentQuestion.options[currentQuestion.correctAnswerIndex]}".`);
+      // Fixed: Removed redundant playerIsActive assignment
       updatedPlayers[userId].isActive = false;
       newEliminatedPlayers.push(userId); // Add to eliminated list
       
@@ -481,7 +489,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Function to handle walking away
   const handleWalkAwayInitiate = () => {
-    if (!roomData || !isMyTurn || !isMyActive || roomData.isLoadingQuestion || !currentQuestion || roomData.activeLifelineRequest || showWalkAwayConfirm) {
+    if (!roomData || !isMyTurn || !isMyActive || roomData.isLoadingQuestion || !currentQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm) { // Fixed: Convert activeLifelineRequest to boolean
       setMessage("Not your turn, eliminated, or question loading/lifeline active.");
       return;
     }
@@ -810,7 +818,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
             disabled={!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest || showWalkAwayConfirm}
             className={`
               ${!isMyTurn || !isMyActive || myPlayerState.askAudienceUsed || roomData.isLoadingQuestion || !!roomData.activeLifelineRequest ? 'bg-gray-600 cursor-not-allowed' : 'bg-yellow-600 hover:bg-yellow-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             Ask the Audience
