@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth'; // Import from firebase/auth
+import { doc, onSnapshot } from 'firebase/firestore'; // Fixed: Directly import Firestore functions
 import { initFirebase, authInstance, dbInstance } from './utils/firebase'; // Import firebase setup, including dbInstance
 import LobbyScreen from './components/LobbyScreen';
 import FastestFingerScreen from './components/FastestFingerScreen';
@@ -38,13 +39,12 @@ export default function App() {
   // Effect to listen to room status changes (only for multiplayer mode)
   useEffect(() => {
     // Check for window existence and ensure dbInstance is available before attempting Firestore operations
-    if (typeof window !== 'undefined' && gameMode === 'multiplayer' && roomId && dbInstance) { // Fixed: Check dbInstance here
-      const { doc, onSnapshot } = require('firebase/firestore'); // Dynamically import doc and onSnapshot
+    if (typeof window !== 'undefined' && gameMode === 'multiplayer' && roomId && dbInstance) { // dbInstance is already imported and checked for null
       
       // Use process.env.REACT_APP_ID for Netlify deployment
       const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id';
-      const roomRef = doc(dbInstance as any, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Cast dbInstance to any/Firestore
-      // You can also import Firestore type and cast as: doc(dbInstance as Firestore, ...)
+      // Fixed: Directly use dbInstance, which is guaranteed non-null by the 'if' condition
+      const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); 
 
       const unsubscribe = onSnapshot(roomRef, (docSnap: any) => {
         if (docSnap.exists()) {
@@ -61,7 +61,7 @@ export default function App() {
     } else if (gameMode === 'multiplayer' && !roomId) {
         setRoomStatus('lobby'); // Reset status if roomId is cleared in multiplayer
     }
-  }, [roomId, gameMode]); // Fixed: Removed dbInstance from dependencies of this useEffect
+  }, [roomId, gameMode, dbInstance]); // dbInstance is a dependency because its value changes after initFirebase completes
 
 
   if (!isAuthReady) {
