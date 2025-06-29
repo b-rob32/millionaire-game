@@ -43,7 +43,8 @@ export default function App() {
       
       // Use process.env.REACT_APP_ID for Netlify deployment
       const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id';
-      const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // dbInstance is now guaranteed non-null here
+      const roomRef = doc(dbInstance as any, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Cast dbInstance to any/Firestore
+      // You can also import Firestore type and cast as: doc(dbInstance as Firestore, ...)
 
       const unsubscribe = onSnapshot(roomRef, (docSnap: any) => {
         if (docSnap.exists()) {
