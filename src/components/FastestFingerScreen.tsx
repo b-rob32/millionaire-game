@@ -27,6 +27,77 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
         const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
         const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
 
+        // Define determineFffWinner internally within useEffect
+        const determineFffWinner = async (currentRoomData: RoomData, roomRef: any) => {
+            const correctSubmissions: { playerId: string, time: number }[] = [];
+            for (const playerId of activeFffPlayers) {
+                const playerAnswer = currentRoomData.fffAnswers[playerId];
+                if (playerAnswer) {
+                    const isCorrect = JSON.stringify(playerAnswer.order) === JSON.stringify(currentFffQuestion?.correctOrderIndices);
+                    if (isCorrect) {
+                        correctSubmissions.push({ playerId, time: playerAnswer.time });
+                    }
+                }
+            }
+
+            correctSubmissions.sort((a, b) => a.time - b.time); // Sort by fastest time
+
+            if (correctSubmissions.length === 0) {
+                // No one got it correct
+                setMessage("No one got the correct order! Playing another Fastest Finger First round...");
+                setTimeout(async () => {
+                    await updateDoc(roomRef, {
+                        fffQuestionIndex: currentRoomData.fffQuestionIndex + 1,
+                        fffAnswers: {}, // Clear submissions for new round
+                        fffWinnerId: null,
+                        fffTieParticipants: [],
+                    });
+                }, 2000);
+            } else if (correctSubmissions.length === 1 || (correctSubmissions.length > 1 && correctSubmissions[0].time !== correctSubmissions[1].time)) {
+                // A single winner or clear fastest winner
+                const winnerId = correctSubmissions[0].playerId;
+                const winnerName = currentRoomData.players[winnerId]?.name || 'A player';
+                setMessage(`${winnerName} wins the Fastest Finger First! They will start the game.`);
+
+                const shuffledPlayerIds = currentRoomData.playerOrder.sort(() => 0.5 - Math.random());
+                const firstPlayerInMainGame = winnerId; // Winner starts the main game
+
+                setTimeout(async () => {
+                    await updateDoc(roomRef, {
+                        status: 'in-game', // Transition to main game
+                        currentTurnPlayerId: firstPlayerInMainGame,
+                        playerOrder: shuffledPlayerIds, // Still need a general player order for turns
+                        fffWinnerId: winnerId,
+                        fffAnswers: {}, // Clear FFF answers
+                        fffTieParticipants: [],
+                        // Reset question for main game
+                        currentQuestionIndex: 0,
+                        currentQuestion: null, // Reset AI generated question
+                        isLoadingQuestion: false,
+                        questionLifelineState: { disabledOptions: [], audienceVote: null, friendAnswer: null, usedByPlayerId: null },
+                        activeLifelineRequest: null, // Clear any active lifeline requests
+                        contestantHistory: [], // Reset contestant history for new game
+                    });
+                }, 2000);
+            } else {
+                // Tie situation
+                const tiedTimes = correctSubmissions.filter(s => s.time === correctSubmissions[0].time);
+                const tiedPlayerIds = tiedTimes.map(s => s.playerId);
+                const tiedNames = tiedPlayerIds.map(id => currentRoomData.players[id]?.name || 'Unknown Player').join(', ');
+                setMessage(`It's a tie between ${tiedNames}! Playing another Fastest Finger First round for tied players.`);
+
+                setTimeout(async () => {
+                    await updateDoc(roomRef, {
+                        fffQuestionIndex: currentRoomData.fffQuestionIndex + 1,
+                        fffAnswers: {}, // Clear submissions for new tie-breaker round
+                        fffWinnerId: null,
+                        fffTieParticipants: tiedPlayerIds, // Only these players participate in next FFF
+                    });
+                }, 2000);
+            }
+        };
+
+
         roomUnsubscribeRef.current = onSnapshot(roomRef, (docSnap) => {
             if (docSnap.exists()) {
                 const data = docSnap.data() as RoomData;
@@ -59,76 +130,7 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
                 roomUnsubscribeRef.current();
             }
         };
-    }, [roomId, setRoomId, activeFffPlayers.length, roomData, determineFffWinner]); // Added roomData to dependencies for accurate currentFffQuestion and fffQuestionIndex access
-
-    const determineFffWinner = useCallback(async (currentRoomData: RoomData, roomRef: any) => {
-        const correctSubmissions: { playerId: string, time: number }[] = [];
-        for (const playerId of activeFffPlayers) {
-            const playerAnswer = currentRoomData.fffAnswers[playerId];
-            if (playerAnswer) {
-                const isCorrect = JSON.stringify(playerAnswer.order) === JSON.stringify(currentFffQuestion?.correctOrderIndices);
-                if (isCorrect) {
-                    correctSubmissions.push({ playerId, time: playerAnswer.time });
-                }
-            }
-        }
-
-        correctSubmissions.sort((a, b) => a.time - b.time); // Sort by fastest time
-
-        if (correctSubmissions.length === 0) {
-            // No one got it correct
-            setMessage("No one got the correct order! Playing another Fastest Finger First round...");
-            setTimeout(async () => {
-                await updateDoc(roomRef, {
-                    fffQuestionIndex: currentRoomData.fffQuestionIndex + 1,
-                    fffAnswers: {}, // Clear submissions for new round
-                    fffWinnerId: null,
-                    fffTieParticipants: [],
-                });
-            }, 2000);
-        } else if (correctSubmissions.length === 1 || (correctSubmissions.length > 1 && correctSubmissions[0].time !== correctSubmissions[1].time)) {
-            // A single winner or clear fastest winner
-            const winnerId = correctSubmissions[0].playerId;
-            const winnerName = currentRoomData.players[winnerId]?.name || 'A player';
-            setMessage(`${winnerName} wins the Fastest Finger First! They will start the game.`);
-
-            const shuffledPlayerIds = currentRoomData.playerOrder.sort(() => 0.5 - Math.random());
-            const firstPlayerInMainGame = winnerId; // Winner starts the main game
-
-            setTimeout(async () => {
-                await updateDoc(roomRef, {
-                    status: 'in-game', // Transition to main game
-                    currentTurnPlayerId: firstPlayerInMainGame,
-                    playerOrder: shuffledPlayerIds, // Still need a general player order for turns
-                    fffWinnerId: winnerId,
-                    fffAnswers: {}, // Clear FFF answers
-                    fffTieParticipants: [],
-                    // Reset question for main game
-                    currentQuestionIndex: 0,
-                    currentQuestion: null, // Reset AI generated question
-                    isLoadingQuestion: false,
-                    questionLifelineState: { disabledOptions: [], audienceVote: null, friendAnswer: null, usedByPlayerId: null },
-                    activeLifelineRequest: null, // Clear any active lifeline requests
-                    contestantHistory: [], // Reset contestant history for new game
-                });
-            }, 2000);
-        } else {
-            // Tie situation
-            const tiedTimes = correctSubmissions.filter(s => s.time === correctSubmissions[0].time);
-            const tiedPlayerIds = tiedTimes.map(s => s.playerId);
-            const tiedNames = tiedPlayerIds.map(id => currentRoomData.players[id]?.name || 'Unknown Player').join(', ');
-            setMessage(`It's a tie between ${tiedNames}! Playing another Fastest Finger First round for tied players.`);
-
-            setTimeout(async () => {
-                await updateDoc(roomRef, {
-                    fffQuestionIndex: currentRoomData.fffQuestionIndex + 1,
-                    fffAnswers: {}, // Clear submissions for new tie-breaker round
-                    fffWinnerId: null,
-                    fffTieParticipants: tiedPlayerIds, // Only these players participate in next FFF
-                });
-            }, 2000);
-        }
-    }, [activeFffPlayers, currentFffQuestion]); // Added currentFffQuestion to dependencies
+    }, [roomId, setRoomId, activeFffPlayers.length, roomData, currentFffQuestion]); // Removed determineFffWinner from dependencies of outer useEffect
 
     const handleItemClick = (itemIndex: number) => {
         if (hasSubmitted) return;
@@ -176,7 +178,8 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
         );
     }
 
-    const myFffAnswer = roomData.fffAnswers ? roomData.fffAnswers[userId] : null;
+    // `myFffAnswer` is not used in the UI, can be removed or kept if planned for future use.
+    // const myFffAnswer = roomData.fffAnswers ? roomData.fffAnswers[userId] : null;
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-800 via-indigo-900 to-black text-white flex flex-col items-center justify-center p-4 font-inter">
