@@ -4,7 +4,7 @@ import { initFirebase, authInstance } from './utils/firebase'; // Import firebas
 import LobbyScreen from './components/LobbyScreen';
 import FastestFingerScreen from './components/FastestFingerScreen';
 import GameScreen from './components/GameScreen';
-import SinglePlayerGameScreen from './components/SinglePlayerGameScreen'; // New import
+import SinglePlayerGameScreen from './components/SinglePlayerGameScreen'; // Corrected: Import SinglePlayerGameScreen
 
 export default function App() {
   const [roomId, setRoomId] = useState<string | null>(null);
