@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import MessageBox from './MessageBox';
-import { prizeTiers, safetyNetIndices } from '../utils/constants'; // Import constants
+import { prizeTiers } from '../utils/constants'; // Import constants
 
 const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) => void }) => {
   const [playerName, setPlayerName] = useState('');
@@ -107,7 +107,7 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
       const currentPrize = prizeTiers[currentQuestionIndex] || 0;
       generateAndSetQuestion(parseInt(playerAge), currentPrize, currentQuestionIndex);
     }
-  }, [isGameStarted, currentQuestionIndex, playerAge, isLoadingQuestion, currentQuestion, generateAndSetQuestion, prizeTiers]); // Added prizeTiers to dependencies
+  }, [isGameStarted, currentQuestionIndex, playerAge, isLoadingQuestion, currentQuestion, generateAndSetQuestion]); // Added prizeTiers to dependencies
 
   const handleStartGame = () => {
     if (!playerName.trim()) {
