@@ -43,8 +43,7 @@ const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id
     const playerUserId = currentUserId; // Use the globally available user ID
 
     try {
-        // Use process.env.REACT_APP_ID for Netlify deployment
-        const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id';
+        const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
         const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, newRoomId);
         await setDoc(roomRef, {
             gameCode: newRoomCode,
@@ -124,7 +123,6 @@ const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id
 
     try {
         setIsJoiningRoom(true);
-        // Use process.env.REACT_APP_ID for Netlify deployment
         const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id';
         const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomIdToJoin);
         const docSnap = await getDoc(roomRef);
@@ -223,6 +221,11 @@ const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id
     }
 
     try {
+      // Fixed: Add null check for dbInstance before using it
+      if (!dbInstance) {
+          setMessage("Firebase is not initialized. Cannot start game.");
+          return;
+      }
       const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id'; // Use process.env.REACT_APP_ID
       const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, `room-${currentRoomCodeRef.current}`);
       await updateDoc(roomRef, {
