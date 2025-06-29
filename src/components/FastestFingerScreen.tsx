@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { dbInstance } from '../utils/firebase';
 import { fffQuestionsData } from '../utils/constants';
