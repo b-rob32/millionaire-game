@@ -107,135 +107,7 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
                 if (data.fffQuestionIndex !== (roomData ? roomData.fffQuestionIndex : -1)) {
                     setSelectedOrder([]);
                     setHasSubmitted(false);
-                    fffStartTimeRef.current = Date.2713
-thought
-The user is reporting a `TS2769: No overload matches this call` error in `src/components/FastestFingerScreen.tsx`, specifically when calling `doc(dbInstance, ...)`.
-
-This error message:
-`Argument of type 'Firestore | null' is not assignable to parameter of type 'Firestore'. Type 'null' is not assignable to type 'Firestore'.`
-
-Indicates that `dbInstance` is potentially `null` (because it's initialized as `null` and might not be set if Firebase fails to initialize or if `initFirebase` hasn't completed), but the `doc` function from `firebase/firestore` strictly requires a non-null `Firestore` instance as its first argument.
-
-The previous fix for `handleSubmitOrder` introduced a null check for `dbInstance`, but the same potential issue exists for `doc(dbInstance, ...)` call within the `useEffect` itself where the `roomRef` is defined for the `onSnapshot` listener.
-
-To fix this, I need to ensure that `dbInstance` is not null *before* attempting to create the `roomRef` using `doc()`.
-
-**Plan:**
-1.  Locate the `useEffect` block in `src/components/FastestFingerScreen.tsx`.
-2.  Add a null check for `dbInstance` at the very beginning of this `useEffect` block, similar to how it was done in `handleSubmitOrder`. If `dbInstance` is null, the `useEffect` should simply `return` or log an error without attempting to call `doc()`.
-
-I will provide the entire `src/components/FastestFingerScreen.tsx` file with this correction.
-```typescript jsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { dbInstance } from '../utils/firebase';
-import { fffQuestionsData } from '../utils/constants';
-import MessageBox from './MessageBox';
-import { RoomData, FFFQuestion } from '../types/game'; // Import types
-
-const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, userId: string, setRoomId: (id: string | null) => void }) => {
-    const [roomData, setRoomData] = useState<RoomData | null>(null);
-    const [message, setMessage] = useState('');
-    const [selectedOrder, setSelectedOrder] = useState<number[]>([]);
-    const [hasSubmitted, setHasSubmitted] = useState(false);
-    const roomUnsubscribeRef = useRef<(() => void) | null>(null);
-    const fffStartTimeRef = useRef<number | null>(null);
-
-    const currentFffQuestion: FFFQuestion | null = roomData ? fffQuestionsData[roomData.fffQuestionIndex % fffQuestionsData.length] : null;
-    const activeFffPlayers = React.useMemo(() => roomData ? Object.keys(roomData.players).filter( // Wrapped in useMemo
-        (id) => roomData.players[id].isActive && (!roomData.fffTieParticipants || roomData.fffTieParticipants.length === 0 || roomData.fffTieParticipants.includes(id))
-    ) : [], [roomData]); // Added roomData to dependencies of useMemo
-
-    useEffect(() => {
-        if (!roomId || !dbInstance) { // Added dbInstance null check here
-            console.error("FastestFingerScreen: roomId or dbInstance is missing or not initialized.");
-            return;
-        }
-
-        const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-        const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
-
-        // Define determineFffWinner internally within useEffect
-        const determineFffWinner = async (currentRoomData: RoomData, roomRef: any) => {
-            const correctSubmissions: { playerId: string, time: number }[] = [];
-            for (const playerId of activeFffPlayers) {
-                const playerAnswer = currentRoomData.fffAnswers[playerId];
-                if (playerAnswer) {
-                    const isCorrect = JSON.stringify(playerAnswer.order) === JSON.stringify(currentFffQuestion?.correctOrderIndices);
-                    if (isCorrect) {
-                        correctSubmissions.push({ playerId, time: playerAnswer.time });
-                    }
-                }
-            }
-
-            correctSubmissions.sort((a, b) => a.time - b.time); // Sort by fastest time
-
-            if (correctSubmissions.length === 0) {
-                // No one got it correct
-                setMessage("No one got the correct order! Playing another Fastest Finger First round...");
-                setTimeout(async () => {
-                    await updateDoc(roomRef, {
-                        fffQuestionIndex: currentRoomData.fffQuestionIndex + 1,
-                        fffAnswers: {}, // Clear submissions for new round
-                        fffWinnerId: null,
-                        fffTieParticipants: [],
-                    });
-                }, 2000);
-            } else if (correctSubmissions.length === 1 || (correctSubmissions.length > 1 && correctSubmissions[0].time !== correctSubmissions[1].time)) {
-                // A single winner or clear fastest winner
-                const winnerId = correctSubmissions[0].playerId;
-                const winnerName = currentRoomData.players[winnerId]?.name || 'A player';
-                setMessage(`${winnerName} wins the Fastest Finger First! They will start the game.`);
-
-                const shuffledPlayerIds = currentRoomData.playerOrder.sort(() => 0.5 - Math.random());
-                const firstPlayerInMainGame = winnerId; // Winner starts the main game
-
-                setTimeout(async () => {
-                    await updateDoc(roomRef, {
-                        status: 'in-game', // Transition to main game
-                        currentTurnPlayerId: firstPlayerInMainGame,
-                        playerOrder: shuffledPlayerIds, // Still need a general player order for turns
-                        fffWinnerId: winnerId,
-                        fffAnswers: {}, // Clear FFF answers
-                        fffTieParticipants: [],
-                        // Reset question for main game
-                        currentQuestionIndex: 0,
-                        currentQuestion: null, // Reset AI generated question
-                        isLoadingQuestion: false,
-                        questionLifelineState: { disabledOptions: [], audienceVote: null, friendAnswer: null, usedByPlayerId: null },
-                        activeLifelineRequest: null, // Clear any active lifeline requests
-                        contestantHistory: [], // Reset contestant history for new game
-                    });
-                }, 2000);
-            } else {
-                // Tie situation
-                const tiedTimes = correctSubmissions.filter(s => s.time === correctSubmissions[0].time);
-                const tiedPlayerIds = tiedTimes.map(s => s.playerId);
-                const tiedNames = tiedPlayerIds.map(id => currentRoomData.players[id]?.name || 'Unknown Player').join(', ');
-                setMessage(`It's a tie between ${tiedNames}! Playing another Fastest Finger First round for tied players.`);
-
-                setTimeout(async () => {
-                    await updateDoc(roomRef, {
-                        fffQuestionIndex: currentRoomData.fffQuestionIndex + 1,
-                        fffAnswers: {}, // Clear submissions for new tie-breaker round
-                        fffWinnerId: null,
-                        fffTieParticipants: tiedPlayerIds, // Only these players participate in next FFF
-                    });
-                }, 2000);
-            }
-        };
-
-
-        roomUnsubscribeRef.current = onSnapshot(roomRef, (docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data() as RoomData;
-                setRoomData(data);
-
-                // Reset submission state if a new FFF round starts or question changes
-                if (data.fffQuestionIndex !== (roomData ? roomData.fffQuestionIndex : -1)) {
-                    setSelectedOrder([]);
-                    setHasSubmitted(false);
-                    fffStartTimeRef.current = Date.now();
+                    fffStartTimeRef.current = Date.now(); // Corrected: Use Date.now()
                 }
 
                 // Logic to check for FFF winner/tie/no-correct after all active players submit
@@ -279,7 +151,7 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
         if (hasSubmitted) return;
 
         setHasSubmitted(true);
-        const submissionTime = Date.Now(); // Record client-side submission time
+        const submissionTime = Date.now(); // Corrected: Use Date.now()
         setMessage("Order submitted! Waiting for other players...");
 
         try {
