@@ -12,34 +12,37 @@ const initFirebase = async () => {
   if (firebaseAppInstance) return; // Already initialized
 
   try {
-    // Prioritize REACT_APP_FIREBASE_CONFIG from Netlify environment variables
-    const firebaseConfigString = process.env.REACT_APP_FIREBASE_CONFIG;
-    let firebaseConfig: any = {};
+    // Construct firebaseConfig from individual environment variables
+    const firebaseConfig = {
+      apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+      authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+      projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+      storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+      appId: process.env.REACT_APP_FIREBASE_APP_ID
+    };
 
-    if (firebaseConfigString) {
-      try {
-        firebaseConfig = JSON.parse(firebaseConfigString);
-      } catch (e) {
-        console.error("Error parsing REACT_APP_FIREBASE_CONFIG. Please ensure it's valid JSON string:", e);
-        // Fallback to empty config if parsing fails, will trigger projectId check below
-        firebaseConfig = {};
-      }
-    } else {
-      // Fallback for Canvas preview environment where __firebase_config is globally available
-      firebaseConfig = typeof (window as any).__firebase_config !== 'undefined' ? JSON.parse((window as any).__firebase_config) : {};
-      if (!firebaseConfig.projectId) {
-          console.warn("REACT_APP_FIREBASE_CONFIG environment variable is not set. Using default or empty config.");
-      }
+    // Fallback for Canvas preview environment where __firebase_config is globally available
+    // This part is less critical if you're primarily deploying to Netlify with env vars
+    // but keeps Canvas preview compatibility if __firebase_config provides the full object.
+    if (!firebaseConfig.projectId && typeof (window as any).__firebase_config !== 'undefined') {
+        const canvasConfig = JSON.parse((window as any).__firebase_config);
+        firebaseConfig.apiKey = firebaseConfig.apiKey || canvasConfig.apiKey;
+        firebaseConfig.authDomain = firebaseConfig.authDomain || canvasConfig.authDomain;
+        firebaseConfig.projectId = firebaseConfig.projectId || canvasConfig.projectId;
+        firebaseConfig.storageBucket = firebaseConfig.storageBucket || canvasConfig.storageBucket;
+        firebaseConfig.messagingSenderId = firebaseConfig.messagingSenderId || canvasConfig.messagingSenderId;
+        firebaseConfig.appId = firebaseConfig.appId || canvasConfig.appId;
     }
+
 
     // Basic validation for essential config properties
     if (!firebaseConfig.projectId || !firebaseConfig.apiKey) {
-      console.error("FirebaseError: Missing projectId or apiKey in firebase config. Please ensure REACT_APP_FIREBASE_CONFIG is set correctly on Netlify.");
-      // Do not proceed with initializeApp if essential config is missing
-      return;
+      console.error("FirebaseError: Missing projectId or apiKey in firebase config. Please ensure REACT_APP_FIREBASE_PROJECT_ID and REACT_APP_FIREBASE_API_KEY are set.");
+      return; // Stop initialization if essential config is missing
     }
 
-    firebaseAppInstance = initializeApp(firebaseConfig);
+    firebaseAppInstance = initializeApp(firebaseConfig as Record<string, string>); // Cast to handle potential undefined
     dbInstance = getFirestore(firebaseAppInstance);
     authInstance = getAuth(firebaseAppInstance);
 
