@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { dbInstance } from '../utils/firebase';
 import { fffQuestionsData } from '../utils/constants';
@@ -24,7 +24,7 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
             return;
         }
 
-        const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+        const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
         const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
 
         // Define determineFffWinner internally within useEffect
@@ -155,7 +155,11 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
         setMessage("Order submitted! Waiting for other players...");
 
         try {
-            const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+            if (!dbInstance) { // Add null check for dbInstance
+                setMessage("Firebase is not initialized. Cannot submit answer.");
+                return;
+            }
+            const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
             const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
             await updateDoc(roomRef, {
                 [`fffAnswers.${userId}`]: {
