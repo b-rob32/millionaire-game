@@ -424,7 +424,6 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
       
     } else { // Incorrect answer
       setMessage(`Incorrect! The correct answer was "${currentQuestion.options[currentQuestion.correctAnswerIndex]}".`);
-      playerIsActive = false; // Eliminate this player
       updatedPlayers[userId].isActive = false;
       newEliminatedPlayers.push(userId); // Add to eliminated list
       
