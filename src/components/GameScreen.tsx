@@ -396,7 +396,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
     }
 
     const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Ensured dbInstance is non-null here
     const correct = selectedIndex === currentQuestion.correctAnswerIndex;
     let newScore = myPlayerState.score;
     // Fixed: Removed redundant playerIsActive variable, use isMyActive directly
@@ -507,7 +507,12 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
     setShowWalkAwayConfirm(false); // Close confirmation modal
 
     const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+    // Fixed: Added null check for dbInstance
+    if (!dbInstance) {
+        setMessage("Firebase is not initialized. Cannot walk away.");
+        return;
+    }
+    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Ensured dbInstance is non-null here
     let updatedPlayers = { ...roomData.players };
     let newContestantHistory = [...(roomData.contestantHistory || [])];
     let newEliminatedPlayers = [...(roomData.eliminatedPlayers || [])]; // Keep current eliminated players
@@ -568,7 +573,12 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
     // Update Firestore
     const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+    // Fixed: Added null check for dbInstance
+    if (!dbInstance) {
+        setMessage("Firebase is not initialized. Cannot use lifeline.");
+        return;
+    }
+    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Ensured dbInstance is non-null here
     await updateDoc(roomRef, {
       [`players.${userId}.fiftyFiftyUsed`]: true,
       'questionLifelineState.disabledOptions': optionsToRemove,
@@ -585,7 +595,12 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
     }
 
     const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+    // Fixed: Added null check for dbInstance
+    if (!dbInstance) {
+        setMessage("Firebase is not initialized. Cannot use lifeline.");
+        return;
+    }
+    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Ensured dbInstance is non-null here
     await updateDoc(roomRef, {
         activeLifelineRequest: {
             type: 'audience',
@@ -599,8 +614,13 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Callback for when an audience member submits their vote
   const handleSubmitAudienceVote = async (selectedOptionIndex: number) => {
+    // Fixed: Added null check for dbInstance
+    if (!dbInstance) {
+        setMessage("Firebase is not initialized. Cannot submit vote.");
+        return;
+    }
     const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Ensured dbInstance is non-null here
     // Add the vote to the activeLifelineRequest.responses map
     await updateDoc(roomRef, {
         [`activeLifelineRequest.responses.${userId}`]: selectedOptionIndex
@@ -628,7 +648,12 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
     }
     setShowPhoneFriendSelect(false); // Close selection modal
     const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+    // Fixed: Added null check for dbInstance
+    if (!dbInstance) {
+        setMessage("Firebase is not initialized. Cannot select friend.");
+        return;
+    }
+    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Ensured dbInstance is non-null here
     await updateDoc(roomRef, {
         activeLifelineRequest: {
             type: 'friend',
@@ -643,8 +668,13 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
 
   // Callback for when the "friend" submits their suggestion
   const handleSubmitFriendSuggestion = async (selectedOptionIndex: number) => {
+    // Fixed: Added null check for dbInstance
+    if (!dbInstance) {
+        setMessage("Firebase is not initialized. Cannot submit suggestion.");
+        return;
+    }
     const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+    const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Ensured dbInstance is non-null here
     // Add the suggestion to the activeLifelineRequest.responses map
     await updateDoc(roomRef, {
         [`activeLifelineRequest.responses.${userId}`]: selectedOptionIndex
@@ -670,7 +700,12 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
       const shuffledPlayerIds = activePlayersArray.sort(() => 0.5 - Math.random());
 
       const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-      const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+      // Fixed: Added null check for dbInstance
+      if (!dbInstance) {
+          setMessage("Firebase is not initialized. Cannot restart game.");
+          return;
+      }
+      const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // Fixed: Ensured dbInstance is non-null here
       await updateDoc(roomRef, {
           status: 'fastest-finger', // Restart game by going back to FFF
           currentQuestionIndex: 0,
@@ -889,7 +924,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
               onSubmitVote={handleSubmitAudienceVote}
               onClose={async () => {
                 const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-                await updateDoc(doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId), { activeLifelineRequest: null });
+                await updateDoc(doc(dbInstance as any, `artifacts/${appId}/public/data/rooms`, roomId), { activeLifelineRequest: null }); // Cast dbInstance
               }}
           />
       )}
@@ -911,7 +946,7 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
               onSubmitSuggestion={handleSubmitFriendSuggestion}
               onClose={async () => {
                 const appId = process.env.REACT_APP_ID || (typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id');
-                await updateDoc(doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId), { activeLifelineRequest: null });
+                await updateDoc(doc(dbInstance as any, `artifacts/${appId}/public/data/rooms`, roomId), { activeLifelineRequest: null }); // Cast dbInstance
               }}
           />
       )}
