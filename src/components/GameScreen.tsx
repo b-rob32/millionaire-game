@@ -393,7 +393,6 @@ const GameScreen = ({ roomId, playerName, userId, setRoomId }: { roomId: string,
     const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
     const correct = selectedIndex === currentQuestion.correctAnswerIndex;
     let newScore = myPlayerState.score;
-    let playerIsActive = isMyActive; // Directly use isMyActive
     let nextQuestionIndex = roomData.currentQuestionIndex; // Will be reset to 0 for next contestant
     let nextTurnPlayerId: string | null = roomData.currentTurnPlayerId;
     let updatedPlayers = { ...roomData.players };
