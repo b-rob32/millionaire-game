@@ -107,7 +107,7 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
       const currentPrize = prizeTiers[currentQuestionIndex] || 0;
       generateAndSetQuestion(parseInt(playerAge), currentPrize, currentQuestionIndex);
     }
-  }, [isGameStarted, currentQuestionIndex, playerAge, isLoadingQuestion, currentQuestion, generateAndSetQuestion]);
+  }, [isGameStarted, currentQuestionIndex, playerAge, isLoadingQuestion, currentQuestion, generateAndSetQuestion, prizeTiers]); // Added prizeTiers to dependencies
 
   const handleStartGame = () => {
     if (!playerName.trim()) {
@@ -335,7 +335,7 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
           </button>
           <button
             onClick={() => setGameMode('none')}
-            className="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
+            className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg"
           >
             Back to Mode Selection
           </button>
@@ -394,7 +394,7 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
             disabled={fiftyFiftyUsed || isLoadingQuestion || showWalkAwayConfirm}
             className={`
               ${fiftyFiftyUsed || isLoadingQuestion || showWalkAwayConfirm ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}
-              text-white font-bold py-3 px-6 rounded-full transition duration-200 ease-in-out transform hover:scale-105 shadow-lg
+              text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 shadow-lg
             `}
           >
             50:50
@@ -448,7 +448,6 @@ const SinglePlayerGameScreen = ({ setGameMode }: { setGameMode: (mode: string) =
                       style={{ width: `${percentage}%` }}
                     ></div>
                   </div>
-                  {/* Fixed: Wrapped sibling elements in a single parent div */}
                   <span className="ml-2 text-lg">{percentage}%</span>
                 </div>
               ))}
