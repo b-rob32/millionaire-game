@@ -17,25 +17,34 @@ export default function App() {
   useEffect(() => {
     // Firebase initialization only needs to happen once at the top level
     initFirebase().then(() => {
-        const unsubscribe = onAuthStateChanged(authInstance, (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else {
-                setUserId(crypto.randomUUID());
-            }
-            setIsAuthReady(true);
-        });
-        return () => unsubscribe();
+        // Ensure authInstance is not null before using it
+        if (authInstance) {
+            const unsubscribe = onAuthStateChanged(authInstance, (user) => {
+                if (user) {
+                    setUserId(user.uid);
+                } else {
+                    setUserId(crypto.randomUUID());
+                }
+                setIsAuthReady(true);
+            });
+            return () => unsubscribe();
+        } else {
+            console.error("Auth instance is null, cannot set up auth state listener. Firebase initialization might have failed.");
+            setIsAuthReady(true); // Still set ready to allow UI to proceed if Firebase init failed gracefully
+        }
     });
   }, []);
 
   // Effect to listen to room status changes (only for multiplayer mode)
   useEffect(() => {
     // Check for window existence to ensure it runs only in browser environment
-    if (typeof window !== 'undefined' && gameMode === 'multiplayer' && roomId && authInstance.currentUser) {
+    // Also ensure authInstance and dbInstance are available before attempting Firestore operations
+    if (typeof window !== 'undefined' && gameMode === 'multiplayer' && roomId && authInstance?.currentUser) { // Added null check for authInstance
       const { getFirestore, doc, onSnapshot } = require('firebase/firestore'); // Dynamically import Firestore
       const dbInstance = getFirestore(); // Get instance after app is initialized
-      const appId = typeof (window as any).__app_id !== 'undefined' ? (window as any).__app_id : 'default-app-id';
+      
+      // Use process.env.REACT_APP_ID for Netlify deployment
+      const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id';
       const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
 
       const unsubscribe = onSnapshot(roomRef, (docSnap: any) => {
