@@ -60,7 +60,7 @@ export default function App() {
     } else if (gameMode === 'multiplayer' && !roomId) {
         setRoomStatus('lobby'); // Reset status if roomId is cleared in multiplayer
     }
-  }, [roomId, gameMode, dbInstance]); // Added dbInstance to dependencies of this useEffect
+  }, [roomId, gameMode]); // Fixed: Removed dbInstance from dependencies of this useEffect
 
 
   if (!isAuthReady) {
