@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth'; // Import from firebase/auth
-import { initFirebase, authInstance } from './utils/firebase'; // Import firebase setup
+import { initFirebase, authInstance, dbInstance } from './utils/firebase'; // Import firebase setup, including dbInstance
 import LobbyScreen from './components/LobbyScreen';
 import FastestFingerScreen from './components/FastestFingerScreen';
 import GameScreen from './components/GameScreen';
@@ -37,15 +37,13 @@ export default function App() {
 
   // Effect to listen to room status changes (only for multiplayer mode)
   useEffect(() => {
-    // Check for window existence to ensure it runs only in browser environment
-    // Also ensure authInstance and dbInstance are available before attempting Firestore operations
-    if (typeof window !== 'undefined' && gameMode === 'multiplayer' && roomId && authInstance?.currentUser) { // Added null check for authInstance
-      const { getFirestore, doc, onSnapshot } = require('firebase/firestore'); // Dynamically import Firestore
-      const dbInstance = getFirestore(); // Get instance after app is initialized
+    // Check for window existence and ensure dbInstance is available before attempting Firestore operations
+    if (typeof window !== 'undefined' && gameMode === 'multiplayer' && roomId && dbInstance) { // Fixed: Check dbInstance here
+      const { doc, onSnapshot } = require('firebase/firestore'); // Dynamically import doc and onSnapshot
       
       // Use process.env.REACT_APP_ID for Netlify deployment
       const appId = process.env.REACT_APP_ID || (window as any).__app_id || 'default-app-id';
-      const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId);
+      const roomRef = doc(dbInstance, `artifacts/${appId}/public/data/rooms`, roomId); // dbInstance is now guaranteed non-null here
 
       const unsubscribe = onSnapshot(roomRef, (docSnap: any) => {
         if (docSnap.exists()) {
@@ -62,7 +60,7 @@ export default function App() {
     } else if (gameMode === 'multiplayer' && !roomId) {
         setRoomStatus('lobby'); // Reset status if roomId is cleared in multiplayer
     }
-  }, [roomId, gameMode]);
+  }, [roomId, gameMode, dbInstance]); // Added dbInstance to dependencies of this useEffect
 
 
   if (!isAuthReady) {
