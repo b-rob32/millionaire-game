@@ -130,7 +130,7 @@ const FastestFingerScreen = ({ roomId, userId, setRoomId }: { roomId: string, us
                 roomUnsubscribeRef.current();
             }
         };
-    }, [roomId, setRoomId, activeFffPlayers.length, roomData, currentFffQuestion]); // Removed determineFffWinner from dependencies of outer useEffect
+    }, [roomId, setRoomId, activeFffPlayers, roomData, currentFffQuestion]); // Added all necessary dependencies
 
     const handleItemClick = (itemIndex: number) => {
         if (hasSubmitted) return;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { doc, setDoc, updateDoc, getDoc, onSnapshot } from 'firebase/firestore';
-import { initFirebase, dbInstance, currentUserId } from '../utils/firebase';
+import { initFirebase, dbInstance, currentUserId } from '../utils/firebase'; // Removed authInstance as it's not directly used here
 import MessageBox from './MessageBox';
 
 const LobbyScreen = ({ setRoomId, setPlayerName, setGameMode }: { setRoomId: (id: string | null) => void, setPlayerName: (name: string) => void, setGameMode: (mode: string) => void }) => {
